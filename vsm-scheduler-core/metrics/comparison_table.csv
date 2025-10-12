@@ -1,0 +1,7 @@
+Algorithm,Avg WT,Avg TAT,CPU Util,Throughput
+FCFS,14.38,22.12,98.4%,0.13 jobs/sec
+SJF,12.75,20.5,98.4%,0.13 jobs/sec
+SRTF,12.62,20.38,98.4%,0.13 jobs/sec
+RR,21.88,29.62,98.4%,0.13 jobs/sec
+MLFQ,26.25,34.0,98.4%,0.13 jobs/sec
+PRIORITY,13.88,21.62,98.4%,0.13 jobs/sec

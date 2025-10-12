@@ -1,0 +1,2 @@
+avg_turnaround,avg_waiting,context_switches,core,cpu_util,cpu_utilization,idle_time,per_process,throughput,total_time
+8.333333333333334,3.0,0,1,100.0,1.0,0,"{'P1': {'waiting': 3, 'turnaround': 8, 'response': 0, 'completion': 8}, 'P2': {'waiting': 0, 'turnaround': 3, 'response': 0, 'completion': 4}, 'P3': {'waiting': 6, 'turnaround': 14, 'response': 6, 'completion': 16}}",0.1875,16
