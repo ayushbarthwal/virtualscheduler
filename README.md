@@ -23,14 +23,7 @@ The Virtual Scheduler Machine (VSM) is a comprehensive CPU scheduling simulator 
 
 - **Export Results:**  
   Outputs results in structured JSON and CSV formats for further analysis.
-
-## Project Structure
-
-- `scheduler_core.py`: Implements scheduling algorithms and result generation (timeline, metrics).
-- `workload_generator.py`: Script for generating random or patterned process datasets.
-- `visualization/`: Data plots, Gantt charts, and tabular outputs for algorithm comparison.
-- `tests/`: Performance testing and validation scripts.
-
+  
 ## Team
 
 This project was developed by:
