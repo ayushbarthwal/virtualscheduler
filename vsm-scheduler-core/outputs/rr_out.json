@@ -1,0 +1,156 @@
+{
+  "timeline": [
+    {
+      "pid": "P1",
+      "start": 1,
+      "end": 5
+    },
+    {
+      "pid": "P2",
+      "start": 5,
+      "end": 9
+    },
+    {
+      "pid": "P1",
+      "start": 9,
+      "end": 10
+    },
+    {
+      "pid": "P3",
+      "start": 10,
+      "end": 14
+    },
+    {
+      "pid": "P4",
+      "start": 14,
+      "end": 17
+    },
+    {
+      "pid": "P2",
+      "start": 17,
+      "end": 19
+    },
+    {
+      "pid": "P5",
+      "start": 19,
+      "end": 23
+    },
+    {
+      "pid": "P6",
+      "start": 23,
+      "end": 27
+    },
+    {
+      "pid": "P7",
+      "start": 27,
+      "end": 31
+    },
+    {
+      "pid": "P3",
+      "start": 31,
+      "end": 33
+    },
+    {
+      "pid": "P8",
+      "start": 33,
+      "end": 37
+    },
+    {
+      "pid": "P5",
+      "start": 37,
+      "end": 41
+    },
+    {
+      "pid": "P6",
+      "start": 41,
+      "end": 45
+    },
+    {
+      "pid": "P7",
+      "start": 45,
+      "end": 49
+    },
+    {
+      "pid": "P8",
+      "start": 49,
+      "end": 53
+    },
+    {
+      "pid": "P5",
+      "start": 53,
+      "end": 54
+    },
+    {
+      "pid": "P6",
+      "start": 54,
+      "end": 58
+    },
+    {
+      "pid": "P8",
+      "start": 58,
+      "end": 61
+    },
+    {
+      "pid": "P6",
+      "start": 61,
+      "end": 63
+    }
+  ],
+  "metrics": {
+    "per_process": {
+      "P1": {
+        "waiting": 4,
+        "turnaround": 9,
+        "response": 0,
+        "completion": 10
+      },
+      "P2": {
+        "waiting": 10,
+        "turnaround": 16,
+        "response": 2,
+        "completion": 19
+      },
+      "P3": {
+        "waiting": 21,
+        "turnaround": 27,
+        "response": 4,
+        "completion": 33
+      },
+      "P4": {
+        "waiting": 6,
+        "turnaround": 9,
+        "response": 6,
+        "completion": 17
+      },
+      "P5": {
+        "waiting": 33,
+        "turnaround": 42,
+        "response": 7,
+        "completion": 54
+      },
+      "P6": {
+        "waiting": 37,
+        "turnaround": 51,
+        "response": 11,
+        "completion": 63
+      },
+      "P7": {
+        "waiting": 29,
+        "turnaround": 37,
+        "response": 15,
+        "completion": 49
+      },
+      "P8": {
+        "waiting": 35,
+        "turnaround": 46,
+        "response": 18,
+        "completion": 61
+      }
+    },
+    "avg_waiting": 21.875,
+    "avg_turnaround": 29.625,
+    "throughput": 0.12698412698412698,
+    "cpu_utilization": 0.9841269841269841,
+    "total_time": 63
+  }
+}
