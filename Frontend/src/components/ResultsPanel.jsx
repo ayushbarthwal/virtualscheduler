@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { BarChart2, Timer, Clock, Cpu, TrendingUp, Download } from "lucide-react";
 
-// Add this at the top
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const breathingStyle = `
 @keyframes rose-text-breathing {
