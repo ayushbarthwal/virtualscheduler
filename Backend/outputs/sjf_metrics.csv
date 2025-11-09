@@ -1,0 +1,5 @@
+PID,waiting,turnaround,response,completion
+P1,0,5,0,5
+P2,4,5,4,6
+P3,4,5,4,7
+P4,4,5,4,8

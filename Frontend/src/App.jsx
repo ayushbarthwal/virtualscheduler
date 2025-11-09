@@ -1,37 +1,92 @@
 import { useState } from 'react'
-import './App.css'
-
-const ALGORITHMS = [
-  'FCFS', 'SJF', 'SRTF', 'RR', 'Priority', 'MLFQ'
-]
+import AlgorithmSelector from './components/AlgorithmSelector'
+import ProcessConfigPanel from './components/ProcessConfigPanel'
+import ResultsPanel from './components/ResultsPanel'
+import Header from './components/Header'
 
 function App() {
+  // Step: 0 = select algorithm, 1 = process/config, 2 = results
+  const [step, setStep] = useState(0)
+  const [selectedAlgo, setSelectedAlgo] = useState(null)
+  const [workload, setWorkload] = useState([
+    { process: 'P1', arrival: 0, burst: 5, priority: 1 }
+  ])
+  const [contextSwitch, setContextSwitch] = useState(1)
+  const [timeQuantum, setTimeQuantum] = useState(2)
   const [metrics, setMetrics] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [algorithm, setAlgorithm] = useState(ALGORITHMS[0])
-  const [file, setFile] = useState(null)
-  const [contextSwitch, setContextSwitch] = useState(2)
 
-  const handleFileChange = (e) => setFile(e.target.files[0])
-  const handleAlgorithmChange = (e) => setAlgorithm(e.target.value)
-  const handleContextSwitchChange = (e) => setContextSwitch(e.target.value)
+  // Validation helpers
+  const isWorkloadValid = () => {
+    if (workload.length === 0) return false
+    for (const row of workload) {
+      if (
+        !row.process ||
+        typeof row.arrival !== 'number' || row.arrival < 0 ||
+        typeof row.burst !== 'number' || row.burst < 1 ||
+        typeof row.priority !== 'number' || row.priority < 1
+      ) return false
+    }
+    return true
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Handlers for workload table
+  const handleWorkloadChange = (idx, key, value) => {
+    setWorkload(prev =>
+      prev.map((row, i) => i === idx ? { ...row, [key]: value } : row)
+    )
+  }
+
+  const addWorkloadRow = () => {
+    setWorkload(prev => [
+      ...prev,
+      { process: `P${prev.length + 1}`, arrival: prev.length, burst: 1, priority: 1 }
+    ])
+  }
+
+  const removeWorkloadRow = (idx) => {
+    setWorkload(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const handleContextSwitchChange = (e) => {
+    const val = Number(e.target.value)
+    setContextSwitch(val >= 0 ? val : 0)
+  }
+
+  const handleTimeQuantumChange = (e) => {
+    const val = Number(e.target.value)
+    setTimeQuantum(val >= 1 ? val : 1)
+  }
+
+  // Step 1: Algorithm selection
+  const handleAlgorithmSelect = (algoKey) => {
+    setSelectedAlgo(algoKey)
+    setStep(1)
+  }
+
+  // Step 2: Run simulation
+  const handleRunSimulation = async () => {
+    if (!isWorkloadValid()) {
+      setError('Please enter valid workload inputs for all processes.')
+      return
+    }
     setLoading(true)
     setError(null)
     setMetrics(null)
 
-    const formData = new FormData()
-    formData.append('algorithm', algorithm)
-    formData.append('context_switch', contextSwitch)
-    if (file) formData.append('workload', file)
+    const payload = {
+      algorithm: selectedAlgo,
+      context_switch: contextSwitch,
+      time_quantum: timeQuantum,
+      workload
+    }
 
     try {
       const res = await fetch('http://localhost:5000/api/schedule', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       })
       const data = await res.json()
       if (!res.ok) {
@@ -40,6 +95,7 @@ function App() {
         setError(data.error)
       } else {
         setMetrics(data)
+        setStep(2)
       }
     } catch (err) {
       setError(err.message)
@@ -48,94 +104,33 @@ function App() {
     }
   }
 
-  // Helper to render metrics table if metrics is an array
-  const renderTable = (data) => (
-    <table border="1" cellPadding="8">
-      <thead>
-        <tr>
-          {Object.keys(data[0]).map(key => <th key={key}>{key}</th>)}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row, idx) => (
-          <tr key={idx}>
-            {Object.values(row).map((val, i) => <td key={i}>{val}</td>)}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-
   return (
-    <div className="app-container">
-      <h1>Virtual Scheduler</h1>
-      <form onSubmit={handleSubmit} style={{marginBottom: 32}}>
-        <label>
-          Scheduling Algorithm:&nbsp;
-          <select value={algorithm} onChange={handleAlgorithmChange}>
-            {ALGORITHMS.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
-        <label style={{marginLeft: 16}}>
-          Context Switch Time:&nbsp;
-          <input
-            type="number"
-            min="0"
-            value={contextSwitch}
-            onChange={handleContextSwitchChange}
-            style={{width: 60}}
-          />
-        </label>
-        <label style={{marginLeft: 16}}>
-          Workload File (CSV/JSON):&nbsp;
-          <input type="file" accept=".csv,.json" onChange={handleFileChange} />
-        </label>
-        <button type="submit" style={{marginLeft: 16}}>Run Scheduler</button>
-      </form>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{color: 'red'}}>Error: {error}</p>}
-      {metrics && metrics.metrics && Array.isArray(metrics.metrics) && metrics.metrics.length > 0 && renderTable(metrics.metrics)}
-      {metrics && metrics.metrics && Array.isArray(metrics.metrics) && metrics.metrics.length === 0 && (
-        <p>No metrics returned.</p>
+    <div className="min-h-screen bg-black text-white font-sans">
+      <Header />
+      {step === 0 && (
+        <AlgorithmSelector
+          selected={selectedAlgo}
+          onSelect={handleAlgorithmSelect}
+        />
       )}
-      {/* If metrics is an object (not array), show JSON */}
-      {metrics && (!metrics.metrics || !Array.isArray(metrics.metrics)) && (
-        <pre style={{textAlign: 'left', margin: '0 auto', maxWidth: 800}}>
-          {JSON.stringify(metrics, null, 2)}
-        </pre>
+      {step === 1 && (
+        <ProcessConfigPanel
+          workload={workload}
+          onWorkloadChange={handleWorkloadChange}
+          addWorkloadRow={addWorkloadRow}
+          removeWorkloadRow={removeWorkloadRow}
+          contextSwitch={contextSwitch}
+          onContextSwitchChange={handleContextSwitchChange}
+          timeQuantum={timeQuantum}
+          onTimeQuantumChange={handleTimeQuantumChange}
+          onRun={handleRunSimulation}
+          isWorkloadValid={isWorkloadValid}
+          loading={loading}
+          error={error}
+        />
       )}
-      {/* Display charts if present */}
-      {metrics && metrics.charts && metrics.charts.length > 0 && (
-        <div style={{marginTop: 32}}>
-          <h2>Generated Charts</h2>
-          {metrics.charts.map((chart, idx) => (
-            <div key={idx} style={{marginBottom: 16}}>
-              <img
-                src={`http://localhost:5000/api/charts/${chart}`}
-                alt={chart}
-                style={{maxWidth: '100%', border: '1px solid #ccc'}}
-              />
-              <div>{chart}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      {/* Display PDF reports if present */}
-      {metrics && metrics.reports && metrics.reports.length > 0 && (
-        <div style={{marginTop: 32}}>
-          <h2>PDF Reports</h2>
-          {metrics.reports.map((pdf, idx) => (
-            <div key={idx}>
-              <a
-                href={`http://localhost:5000/api/reports/${pdf}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {pdf}
-              </a>
-            </div>
-          ))}
-        </div>
+      {step === 2 && metrics && (
+        <ResultsPanel metrics={metrics} />
       )}
     </div>
   )

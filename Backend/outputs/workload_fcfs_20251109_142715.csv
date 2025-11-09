@@ -1,0 +1,4 @@
+PID,ArrivalTime,BurstTime,Priority
+P1,0,5,1
+P2,1,2,3
+P3,3,12,1

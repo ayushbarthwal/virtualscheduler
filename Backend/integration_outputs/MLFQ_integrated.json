@@ -1,0 +1,15 @@
+{
+  "timeline": [],
+  "dispatcher_summary": {
+    "context_switches": 0,
+    "context_switch_time_total": 0,
+    "context_switch_time_unit": 5
+  },
+  "metrics": {},
+  "system_metrics": {
+    "context_switches": 0,
+    "idle_time": 0,
+    "total_time": 0,
+    "cpu_util": 0.0
+  }
+}
