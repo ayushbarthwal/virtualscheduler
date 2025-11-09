@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { Play, Download } from "lucide-react";
 
-// Text color breathing animation for icons
+// Add this at the top
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
 const breathingStyle = `
 @keyframes rose-text-breathing {
   0%, 100% { color: #fb7185; }
@@ -12,7 +14,6 @@ const breathingStyle = `
 }
 `;
 
-// Accent button style: rose text/border, black background, hover inverts
 const addProcessBtnStyle = `
 .btn {
   color: #fb7185;
@@ -53,7 +54,6 @@ const addProcessBtnStyle = `
 }
 `;
 
-// Next button style (copied from AlgorithmSelector)
 const nextBtnStyles = `
 .styled-wrapper .button {
   display: block;
@@ -255,7 +255,6 @@ const Loader = () => (
   </div>
 );
 
-// Mobile detection hook
 function useMediaQuery(query) {
   const [matches, setMatches] = React.useState(false);
   React.useEffect(() => {
@@ -268,7 +267,6 @@ function useMediaQuery(query) {
   return matches;
 }
 
-// Mobile UI component
 function MobileProcessConfigPanel({
   workload,
   onWorkloadChange,
@@ -297,14 +295,13 @@ function MobileProcessConfigPanel({
   const settingsInputClass =
     "bg-neutral-900 text-white rounded-xl px-2 py-2 focus:outline-none focus:ring-2 focus:ring-rose-400 text-base font-bold border border-neutral-700 w-full appearance-none hide-spin text-center";
 
-  const simulateButtonHeight = 72; // px
+  const simulateButtonHeight = 72;
 
   const roseScrollbar = {
     scrollbarColor: "#fb7185 #222",
     scrollbarWidth: "thin"
   };
 
-  // Defensive: Ensure workload is always an array
   const safeWorkload = Array.isArray(workload) ? workload : [];
 
   return (
@@ -526,7 +523,7 @@ function MobileProcessConfigPanel({
           <button
             className="flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-black font-bold py-2 px-3 rounded-lg shadow transition text-xs"
             onClick={() => {
-              window.open(`http://localhost:5000/api/reports/${schedulingReports[0]}`, "_blank");
+              window.open(`${API_BASE}/api/reports/${schedulingReports[0]}`, "_blank");
             }}
             tabIndex={0}
           >
@@ -535,7 +532,6 @@ function MobileProcessConfigPanel({
           </button>
         </div>
       )}
-      {/* Next button with blurred background behind only the button, not the accent border or arrow */}
       <div className="styled-wrapper fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-30" style={{ width: 76, height: 76 }}>
         <div
           className="absolute inset-0 rounded-full"
@@ -617,7 +613,6 @@ export default function ProcessConfigPanel(props) {
     };
   }, []);
 
-  // Defensive: Ensure workload is always an array
   const workload = Array.isArray(props.workload) ? props.workload : [];
 
   if (props.loading) {
@@ -628,7 +623,6 @@ export default function ProcessConfigPanel(props) {
     return <MobileProcessConfigPanel {...props} workload={workload} />;
   }
 
-  // Desktop UI (original code)
   const {
     onWorkloadChange,
     addWorkloadRow,
@@ -656,7 +650,7 @@ export default function ProcessConfigPanel(props) {
   const settingsInputClass =
     "bg-neutral-900 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-400 text-lg font-bold border border-neutral-700 w-full appearance-none hide-spin text-center";
 
-  const simulateButtonHeight = 72; // px
+  const simulateButtonHeight = 72;
 
   const roseScrollbar = {
     scrollbarColor: "#fb7185 #222",
@@ -896,7 +890,7 @@ export default function ProcessConfigPanel(props) {
               <button
                 className="flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-black font-bold py-2 px-5 rounded-lg shadow transition"
                 onClick={() => {
-                  window.open(`http://localhost:5000/api/reports/${schedulingReports[0]}`, "_blank");
+                  window.open(`${API_BASE}/api/reports/${schedulingReports[0]}`, "_blank");
                 }}
                 tabIndex={0}
               >
@@ -907,7 +901,6 @@ export default function ProcessConfigPanel(props) {
           )}
         </div>
       </div>
-      {/* Next button with blurred background behind only the button, not the accent border or arrow */}
       <div className="styled-wrapper fixed bottom-8 right-8 z-30" style={{ width: 76, height: 76 }}>
         <div
           className="absolute inset-0 rounded-full"

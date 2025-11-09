@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { BarChart2, Timer, Clock, Cpu, TrendingUp, Download } from "lucide-react";
 
-// Text color breathing animation for icons (except Download)
+// Add this at the top
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+
 const breathingStyle = `
 @keyframes rose-text-breathing {
   0%, 100% { color: #fb7185; }
@@ -57,7 +59,6 @@ function MobileResultsPanel({ metrics, selectedAlgos, activeTab, setActiveTab })
 
   return (
     <div className="w-full min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden pt-16">
-      {/* Mobile bloom effect: top and bottom center */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-rose-400 opacity-20 rounded-full blur-2xl animate-pulse"></div>
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-40 h-40 bg-rose-400 opacity-10 rounded-full blur-3xl animate-pulse"></div>
@@ -75,7 +76,7 @@ function MobileResultsPanel({ metrics, selectedAlgos, activeTab, setActiveTab })
               className="flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-black font-bold py-2 px-4 rounded-lg shadow transition text-xs"
               style={{ marginLeft: 8, marginRight: 8 }}
               onClick={() => {
-                window.open(`http://localhost:5000/api/reports/${reports[0]}`, "_blank");
+                window.open(`${API_BASE}/api/reports/${reports[0]}`, "_blank");
               }}
               tabIndex={0}
             >
@@ -199,7 +200,7 @@ function MobileResultsPanel({ metrics, selectedAlgos, activeTab, setActiveTab })
               {comparisonChart && (
                 <div className="bg-transparent border border-neutral-800 rounded-xl shadow p-2 flex flex-col items-center w-full" style={{ marginLeft: 8, marginRight: 8 }}>
                   <img
-                    src={`http://localhost:5000/api/charts/${comparisonChart}`}
+                    src={`${API_BASE}/api/charts/${comparisonChart}`}
                     alt={comparisonChart}
                     className="max-w-full border border-neutral-800 bg-black rounded-lg"
                   />
@@ -208,7 +209,7 @@ function MobileResultsPanel({ metrics, selectedAlgos, activeTab, setActiveTab })
               {throughputChart && (
                 <div className="bg-transparent border border-neutral-800 rounded-xl shadow p-2 flex flex-col items-center w-full" style={{ marginLeft: 8, marginRight: 8 }}>
                   <img
-                    src={`http://localhost:5000/api/charts/${throughputChart}`}
+                    src={`${API_BASE}/api/charts/${throughputChart}`}
                     alt={throughputChart}
                     className="max-w-full border border-neutral-800 bg-black rounded-lg"
                   />
@@ -275,7 +276,7 @@ function MobileResultsPanel({ metrics, selectedAlgos, activeTab, setActiveTab })
           {ganttChart && (
             <div className="bg-transparent border border-neutral-800 rounded-xl shadow p-2 flex flex-col items-center w-full mb-4" style={{ marginLeft: 8, marginRight: 8 }}>
               <img
-                src={`http://localhost:5000/api/charts/${ganttChart}`}
+                src={`${API_BASE}/api/charts/${ganttChart}`}
                 alt={ganttChart}
                 className="max-w-full border border-neutral-800 bg-black rounded-lg"
               />
@@ -303,7 +304,6 @@ export default function ResultsPanel({ metrics, selectedAlgos }) {
     );
   }
 
-  // Desktop UI (original code)
   const fmt = v => typeof v === "number" ? v.toFixed(2) : v;
   const charts = metrics?.[selectedAlgos[0]]?.charts || [];
   const reports = metrics?.[selectedAlgos[0]]?.reports || [];
@@ -350,7 +350,7 @@ export default function ResultsPanel({ metrics, selectedAlgos }) {
             className="flex items-center gap-2 bg-rose-400 hover:bg-rose-500 text-black font-bold py-2 px-5 rounded-lg shadow transition self-end"
             style={{ marginRight: 8 }}
             onClick={() => {
-              window.open(`http://localhost:5000/api/reports/${reports[0]}`, "_blank");
+              window.open(`${API_BASE}/api/reports/${reports[0]}`, "_blank");
             }}
             tabIndex={0}
           >
@@ -485,7 +485,7 @@ export default function ResultsPanel({ metrics, selectedAlgos }) {
               {comparisonChart && (
                 <div className="bg-transparent border-2 border-neutral-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center w-1/2" style={{ marginLeft: 8 }}>
                   <img
-                    src={`http://localhost:5000/api/charts/${comparisonChart}`}
+                    src={`${API_BASE}/api/charts/${comparisonChart}`}
                     alt={comparisonChart}
                     className="max-w-full border border-neutral-800 bg-black rounded-lg"
                   />
@@ -494,7 +494,7 @@ export default function ResultsPanel({ metrics, selectedAlgos }) {
               {throughputChart && (
                 <div className="bg-transparent border-2 border-neutral-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center w-1/2" style={{ marginRight: 8 }}>
                   <img
-                    src={`http://localhost:5000/api/charts/${throughputChart}`}
+                    src={`${API_BASE}/api/charts/${throughputChart}`}
                     alt={throughputChart}
                     className="max-w-full border border-neutral-800 bg-black rounded-lg"
                   />
@@ -568,7 +568,7 @@ export default function ResultsPanel({ metrics, selectedAlgos }) {
           {ganttChart && (
             <div className="bg-transparent border-2 border-neutral-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center w-full mb-8" style={{ marginLeft: 8, marginRight: 8 }}>
               <img
-                src={`http://localhost:5000/api/charts/${ganttChart}`}
+                src={`${API_BASE}/api/charts/${ganttChart}`}
                 alt={ganttChart}
                 className="max-w-full border border-neutral-800 bg-black rounded-lg"
               />
