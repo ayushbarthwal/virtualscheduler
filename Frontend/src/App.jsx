@@ -5,9 +5,8 @@ import ResultsPanel from './components/ResultsPanel'
 import Header from './components/Header'
 
 function App() {
-  // Step: 0 = select algorithm, 1 = process/config, 2 = results
   const [step, setStep] = useState(0)
-  const [selectedAlgo, setSelectedAlgo] = useState(null)
+  const [selectedAlgos, setSelectedAlgos] = useState([])
   const [workload, setWorkload] = useState([
     { process: 'P1', arrival: 0, burst: 5, priority: 1 }
   ])
@@ -17,7 +16,6 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Validation helpers
   const isWorkloadValid = () => {
     if (workload.length === 0) return false
     for (const row of workload) {
@@ -31,7 +29,6 @@ function App() {
     return true
   }
 
-  // Handlers for workload table
   const handleWorkloadChange = (idx, key, value) => {
     setWorkload(prev =>
       prev.map((row, i) => i === idx ? { ...row, [key]: value } : row)
@@ -59,13 +56,23 @@ function App() {
     setTimeQuantum(val >= 1 ? val : 1)
   }
 
-  // Step 1: Algorithm selection
   const handleAlgorithmSelect = (algoKey) => {
-    setSelectedAlgo(algoKey)
-    setStep(1)
+    setSelectedAlgos(prev => 
+      prev.includes(algoKey)
+        ? prev.filter(a => a !== algoKey)
+        : [...prev, algoKey]
+    )
   }
 
-  // Step 2: Run simulation
+  const handleProceed = () => {
+    if (selectedAlgos.length === 0) {
+      setError('Please select at least one algorithm.')
+      return
+    }
+    setStep(1)
+    setError(null)
+  }
+
   const handleRunSimulation = async () => {
     if (!isWorkloadValid()) {
       setError('Please enter valid workload inputs for all processes.')
@@ -76,18 +83,19 @@ function App() {
     setMetrics(null)
 
     const payload = {
-      algorithm: selectedAlgo,
+      algorithm: selectedAlgos,
       context_switch: contextSwitch,
       time_quantum: timeQuantum,
       workload
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000';
+const res = await fetch(`${API_BASE}/api/schedule`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Failed to schedule')
@@ -109,10 +117,12 @@ function App() {
       <Header />
       {step === 0 && (
         <AlgorithmSelector
-          selected={selectedAlgo}
+          selected={selectedAlgos}
           onSelect={handleAlgorithmSelect}
+          onNext={handleProceed}
         />
       )}
+      {/* Removed the extra Next button below the cards */}
       {step === 1 && (
         <ProcessConfigPanel
           workload={workload}
@@ -130,7 +140,7 @@ function App() {
         />
       )}
       {step === 2 && metrics && (
-        <ResultsPanel metrics={metrics} />
+        <ResultsPanel metrics={metrics} selectedAlgos={selectedAlgos} />
       )}
     </div>
   )

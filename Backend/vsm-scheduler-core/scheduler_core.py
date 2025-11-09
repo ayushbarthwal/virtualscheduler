@@ -18,7 +18,6 @@ from typing import List, Dict, Any, Optional
 import heapq, json, csv, copy, os
 import pandas as pd
 
-
 # ------------------------- #
 # Data Structures
 # ------------------------- #
@@ -36,13 +35,11 @@ class Process:
     def __post_init__(self):
         self.remaining = self.cpu_burst
 
-
 # ------------------------- #
 # Utility Helpers
 # ------------------------- #
 def make_timeline_entry(pid, start, end):
     return {"pid": pid, "start": start, "end": end}
-
 
 def compute_metrics(processes: List[Process], timeline: List[Dict[str, int]], context_switch_time=0):
     per = {}
@@ -52,12 +49,13 @@ def compute_metrics(processes: List[Process], timeline: List[Dict[str, int]], co
         rt = p.started - p.arrival if p.started is not None else None
         per[p.pid] = {"waiting": wt, "turnaround": tat, "response": rt, "completion": p.completed}
 
-    total_time = max((p.completed for p in processes if p.completed), default=0)
-    total_cpu = sum(p.cpu_burst for p in processes)
-    cpu_util = total_cpu / total_time if total_time > 0 else 0
+    # Fix: Calculate busy_time from timeline (exclude context switch and idle)
+    busy_time = sum(seg["end"] - seg["start"] for seg in timeline if seg["pid"] not in ("CS", "IDLE"))
+    total_time = max((seg["end"] for seg in timeline), default=0)
     avg_wait = sum(v["waiting"] for v in per.values()) / len(per) if per else 0
     avg_tat = sum(v["turnaround"] for v in per.values()) / len(per) if per else 0
     throughput = len(per) / total_time if total_time > 0 else 0
+    cpu_util = busy_time / total_time if total_time > 0 else 0
 
     return {
         "per_process": per,
@@ -67,7 +65,6 @@ def compute_metrics(processes: List[Process], timeline: List[Dict[str, int]], co
         "cpu_utilization": cpu_util,
         "total_time": total_time
     }
-
 
 def parse_csv_to_processes(csv_path: str) -> List[Process]:
     procs = []
@@ -82,7 +79,6 @@ def parse_csv_to_processes(csv_path: str) -> List[Process]:
             p = Process(pid=str(pid), arrival=arrival, cpu_burst=burst, priority=pr, queue_level=ql)
             procs.append(p)
     return procs
-
 
 # ------------------------- #
 # Scheduling Implementations
@@ -99,7 +95,6 @@ def schedule_fcfs(process_list: List[Process], params):
         p.completed = end
         time = end + params.get("context_switch", 0)
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, params.get("context_switch", 0))}
-
 
 def schedule_sjf_nonpreemptive(process_list: List[Process], params):
     events = sorted(copy.deepcopy(process_list), key=lambda p: p.arrival)
@@ -118,7 +113,6 @@ def schedule_sjf_nonpreemptive(process_list: List[Process], params):
         psel.completed = end
         time = end + params.get("context_switch", 0)
     return {"timeline": timeline, "metrics": compute_metrics(events, timeline, params.get("context_switch", 0))}
-
 
 def schedule_srtf(process_list: List[Process], params):
     procs = [copy.deepcopy(p) for p in process_list]
@@ -166,7 +160,6 @@ def schedule_srtf(process_list: List[Process], params):
                     current, time = None, time + context
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, context)}
 
-
 def schedule_round_robin(process_list: List[Process], params):
     quantum = int(params.get("quantum", 4))
     if quantum <= 0:
@@ -197,7 +190,6 @@ def schedule_round_robin(process_list: List[Process], params):
         else:
             p.completed = end
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, params.get("context_switch", 0))}
-
 
 def schedule_priority_generic(process_list: List[Process], params, preemptive=True):
     procs = [copy.deepcopy(p) for p in process_list]
@@ -249,7 +241,6 @@ def schedule_priority_generic(process_list: List[Process], params, preemptive=Tr
                 time, current = end + context, None
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, context)}
 
-
 def schedule_mlq(process_list: List[Process], params):
     queues = params.get("queues", 3)
     context = params.get("context_switch", 0)
@@ -267,7 +258,6 @@ def schedule_mlq(process_list: List[Process], params):
             p.completed = end
             time = end + context
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, context)}
-
 
 def schedule_mlfq(process_list: List[Process], params):
     levels = params.get("levels", 3)
@@ -306,7 +296,6 @@ def schedule_mlfq(process_list: List[Process], params):
             p.completed = end
     return {"timeline": timeline, "metrics": compute_metrics(procs, timeline, context)}
 
-
 # ------------------------- #
 # Public API
 # ------------------------- #
@@ -330,7 +319,6 @@ def schedule(process_list: List[Process], algorithm: str, params: Optional[Dict[
         return schedule_mlfq(process_list, params)
     else:
         raise ValueError(f"Unknown algorithm: {alg}")
-
 
 # ------------------------- #
 # CLI Entry Point

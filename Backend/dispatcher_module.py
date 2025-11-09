@@ -2,7 +2,7 @@
 dispatcher_module.py — Team 4 Dispatcher Component
 ---------------------------------------------------
 Simulates context switch overhead for any scheduling algorithm.
-Used by team4_runtime to overlay realistic CPU switching behavior
+Used by runtime to overlay realistic CPU switching behavior
 without modifying scheduler_core internals.
 """
 

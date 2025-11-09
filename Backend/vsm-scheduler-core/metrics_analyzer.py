@@ -316,14 +316,16 @@ def analyze_and_report(
     summary_df.to_csv(summary_csv, index=False)
     print(f"[INFO ] Summary CSV saved: {summary_csv}")
 
-    # plots
-    bar_chart_path = os.path.join(metrics_dir, f"comparison_bar_chart_{run_id}.png")
+    # Use all algorithm names in chart filenames for throughput and comparison
+    algs_str = "_".join([a.lower() for a in algorithms])
+
+    bar_chart_path = os.path.join(metrics_dir, f"{algs_str}_comparison_bar_chart_{run_id}.png")
     plot_comparison_bar(summary_df.rename(columns={
         "Avg_Waiting": "Avg_Waiting",
         "Avg_Turnaround": "Avg_Turnaround"
     }), bar_chart_path)
 
-    throughput_path = os.path.join(metrics_dir, f"throughput_cpuutil_{run_id}.png")
+    throughput_path = os.path.join(metrics_dir, f"{algs_str}_throughput_cpuutil_{run_id}.png")
     plot_throughput_line(summary_df, throughput_path)
 
     # PDF
