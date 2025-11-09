@@ -24,16 +24,6 @@
       "pid": "P3",
       "start": 8,
       "end": 9
-    },
-    {
-      "pid": "CS",
-      "start": 9,
-      "end": 10
-    },
-    {
-      "pid": "P4",
-      "start": 10,
-      "end": 11
     }
   ],
   "metrics": {
@@ -55,29 +45,23 @@
         "turnaround": 5,
         "response": 4,
         "completion": 7
-      },
-      "P4": {
-        "waiting": 4,
-        "turnaround": 5,
-        "response": 4,
-        "completion": 8
       }
     },
-    "avg_waiting": 3.0,
+    "avg_waiting": 2.6666666666666665,
     "avg_turnaround": 5.0,
-    "throughput": 0.5,
-    "cpu_utilization": 1.0,
-    "total_time": 8
+    "throughput": 0.3333333333333333,
+    "cpu_utilization": 0.7778,
+    "total_time": 9
   },
   "dispatcher_summary": {
-    "context_switches": 3,
-    "context_switch_time_total": 3,
+    "context_switches": 2,
+    "context_switch_time_total": 2,
     "context_switch_time_unit": 1
   },
   "system_metrics": {
-    "context_switches": 3,
-    "idle_time": 3,
-    "total_time": 11,
-    "cpu_utilization_%": 72.73
+    "context_switches": 2,
+    "idle_time": 2,
+    "total_time": 9,
+    "cpu_utilization": 0.7778
   }
 }

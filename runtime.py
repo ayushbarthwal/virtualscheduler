@@ -30,7 +30,6 @@ SCHEDULER_CORE = ROOT / "vsm-scheduler-core" / "scheduler_core.py"
 OUT_DIR = ROOT / "integration_outputs"
 OUT_DIR.mkdir(exist_ok=True)
 
-
 # -------------------------------------------------------------------------
 # Utility: read workload CSV into a list of process dicts
 # -------------------------------------------------------------------------
@@ -47,7 +46,6 @@ def read_workload_csv(path):
                 "pid": pid, "arrival": arrival, "burst": burst, "priority": priority
             })
     return processes
-
 
 # -------------------------------------------------------------------------
 # Utility: call scheduler_core as a black box
@@ -70,7 +68,6 @@ def call_scheduler_cli(input_path, algorithm, out_json_path, extra_args=None):
         raise RuntimeError("scheduler_core.py execution failed")
 
     return out_json_path
-
 
 # -------------------------------------------------------------------------
 # Dispatcher-based context switch simulation
@@ -98,15 +95,14 @@ def simulate_with_dispatcher(processes, context_switch):
 
     return timeline, dispatcher.summary()
 
-
 # -------------------------------------------------------------------------
 # Analyze timeline to compute CPU stats
 # -------------------------------------------------------------------------
 def compute_system_metrics(timeline):
     if not timeline:
-        return {"context_switches": 0, "idle_time": 0, "total_time": 0, "cpu_util": 0.0}
+        return {"context_switches": 0, "idle_time": 0, "total_time": 0, "cpu_utilization": 0.0}
 
-    total_time = timeline[-1]["end"] - timeline[0]["start"]
+    total_time = max(seg["end"] for seg in timeline)  # Use the last end time as total time
     idle_time = 0
     cs_count = 0
     useful = 0
@@ -122,14 +118,13 @@ def compute_system_metrics(timeline):
         else:
             useful += dur
 
-    cpu_util = (useful / total_time) * 100 if total_time > 0 else 0
+    cpu_util = useful / total_time if total_time > 0 else 0  # Store as fraction
     return {
         "context_switches": cs_count,
         "idle_time": idle_time,
         "total_time": total_time,
-        "cpu_utilization_%": round(cpu_util, 2)
+        "cpu_utilization": round(cpu_util, 4)  # Store as fraction, not percent
     }
-
 
 # -------------------------------------------------------------------------
 # Core function: run and integrate everything
@@ -163,9 +158,21 @@ def run_singlecore(workload_path, algorithm, context_switch, extra_args=None):
 
     sys_metrics = compute_system_metrics(data["timeline"])
     data["system_metrics"] = sys_metrics
+
+    # FIX: Copy throughput and cpu_utilization into metrics for analyzer
+    if "metrics" not in data or not isinstance(data["metrics"], dict):
+        data["metrics"] = {}
+    # Throughput: number of processes / total_time
+    num_procs = len([seg for seg in data["timeline"] if seg["pid"].upper() not in ("CS", "CONTEXT_SWITCH", "IDLE")])
+    throughput = num_procs / sys_metrics["total_time"] if sys_metrics["total_time"] > 0 else 0.0
+    data["metrics"]["throughput"] = throughput
+    # CPU Utilization: from system_metrics (fraction, not percent)
+    data["metrics"]["cpu_utilization"] = sys_metrics.get("cpu_utilization", 0.0)
+    # Also copy total_time for completeness
+    data["metrics"]["total_time"] = sys_metrics.get("total_time", 0.0)
+
     json.dump(data, open(out_json_path, "w"), indent=2)
     return data
-
 
 # -------------------------------------------------------------------------
 # Entry point
@@ -194,7 +201,6 @@ def main():
     print(f"\n✅ Integration summary saved: {summary_csv}")
     print("✅ Timeline + metrics JSON saved in integration_outputs/")
     print("✅ Team 4 runtime module execution complete.\n")
-
 
 if __name__ == "__main__":
     main()
