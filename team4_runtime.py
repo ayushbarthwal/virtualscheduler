@@ -145,13 +145,20 @@ def run_singlecore(workload_path, algorithm, context_switch, extra_args=None):
             timeline, disp_summary = simulate_with_dispatcher(procs, context_switch)
             data["timeline"] = timeline
             data["dispatcher_summary"] = disp_summary
+        # Ensure metrics key is present
+        if "metrics" not in data:
+            data["metrics"] = {}
         json.dump(data, open(out_json_path, "w"), indent=2)
         print(f"[OK] Scheduler integration completed for {algorithm}.")
     except Exception as e:
         print(f"[WARN] scheduler_core failed: {e}")
         procs = read_workload_csv(workload_path)
         timeline, disp_summary = simulate_with_dispatcher(procs, context_switch)
-        data = {"timeline": timeline, "dispatcher_summary": disp_summary}
+        data = {
+            "timeline": timeline,
+            "dispatcher_summary": disp_summary,
+            "metrics": {}  # Always include metrics key
+        }
         json.dump(data, open(out_json_path, "w"), indent=2)
 
     sys_metrics = compute_system_metrics(data["timeline"])

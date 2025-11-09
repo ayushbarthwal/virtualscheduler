@@ -1,0 +1,2 @@
+Algorithm,Avg_Waiting,Avg_Turnaround,CPU_Util_percent,Throughput
+SJF,0.0,5.0,100.0,0.2

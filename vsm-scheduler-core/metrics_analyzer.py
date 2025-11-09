@@ -22,6 +22,7 @@ Notes:
 import os
 import json
 import argparse
+import time
 from typing import List, Dict, Any, Tuple, Optional
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,6 +34,9 @@ DEFAULT_METRICS_DIR = "metrics_reports"
 
 os.makedirs(DEFAULT_METRICS_DIR, exist_ok=True)
 
+def get_run_id():
+    """Generate a unique run ID based on timestamp."""
+    return time.strftime("%Y%m%d_%H%M%S")
 
 # -------------------------
 # I/O helpers
@@ -41,7 +45,6 @@ def load_scheduler_output(json_path: str) -> Dict[str, Any]:
     """Load a scheduler output JSON and return the parsed dict."""
     with open(json_path, 'r') as f:
         return json.load(f)
-
 
 def safe_load_metrics(json_path: str) -> Optional[Dict[str, Any]]:
     """Return metrics dict if file exists and is valid, else None."""
@@ -60,24 +63,22 @@ def safe_load_metrics(json_path: str) -> Optional[Dict[str, Any]]:
         print(f"[ERROR] Failed to load {json_path}: {e}")
         return None
 
-
 # -------------------------
 # Metric summarization
 # -------------------------
 def metrics_summary_row(metrics_dict: Dict[str, Any], algorithm_name: str) -> Dict[str, Any]:
     """Create one-row summary from metrics JSON structure."""
-    avg_wt = metrics_dict.get("avg_waiting", 0.0)
-    avg_tat = metrics_dict.get("avg_turnaround", 0.0)
-    cpu_util = metrics_dict.get("cpu_utilization", 0.0) * 100.0
-    throughput = metrics_dict.get("throughput", 0.0)
+    avg_wt = metrics_dict.get("avg_waiting", 0.0) or 0.0
+    avg_tat = metrics_dict.get("avg_turnaround", 0.0) or 0.0
+    cpu_util = metrics_dict.get("cpu_utilization", 0.0) or 0.0
+    throughput = metrics_dict.get("throughput", 0.0) or 0.0
     return {
         "Algorithm": algorithm_name,
         "Avg_Waiting": round(avg_wt, 4),
         "Avg_Turnaround": round(avg_tat, 4),
-        "CPU_Util_percent": round(cpu_util, 2),
+        "CPU_Util_percent": round(cpu_util * 100.0, 2),
         "Throughput": round(throughput, 6)
     }
-
 
 # -------------------------
 # Plotting: Gantt
@@ -115,7 +116,6 @@ def plot_gantt(timeline: List[Dict[str, Any]], title: str, path: str):
     plt.close()
     print(f"[INFO ] Gantt saved: {path}")
 
-
 # -------------------------
 # Plotting: comparison bar chart
 # -------------------------
@@ -135,7 +135,6 @@ def plot_comparison_bar(summary_df: pd.DataFrame, path: str):
     plt.savefig(path)
     plt.close()
     print(f"[INFO ] Comparison bar chart saved: {path}")
-
 
 # -------------------------
 # Plotting: Throughput & CPU Util line chart
@@ -158,7 +157,6 @@ def plot_throughput_line(summary_df: pd.DataFrame, path: str):
     plt.savefig(path)
     plt.close()
     print(f"[INFO ] Throughput line chart saved: {path}")
-
 
 # -------------------------
 # PDF Report Generator
@@ -234,14 +232,22 @@ def generate_pdf_report(
         ax.text(0.02, y, "Per-Algorithm Metrics (detailed)", fontsize=12, fontweight='bold')
         y -= 0.04
         for alg, metrics in per_algorithm_metrics.items():
-            txt = f"{alg}: Avg WT={metrics.get('avg_waiting')}, Avg TAT={metrics.get('avg_turnaround')}, CPU Util={metrics.get('cpu_utilization'):.3f}, Throughput={metrics.get('throughput'):.6f}"
+            avg_wt = metrics.get('avg_waiting', 0) or 0
+            avg_tat = metrics.get('avg_turnaround', 0) or 0
+            cpu_util = metrics.get('cpu_utilization', 0) or 0
+            throughput = metrics.get('throughput', 0) or 0
+            txt = (
+                f"{alg}: Avg WT={avg_wt}, "
+                f"Avg TAT={avg_tat}, "
+                f"CPU Util={cpu_util:.3f}, "
+                f"Throughput={throughput:.6f}"
+            )
             ax.text(0.02, y, txt, fontsize=9)
             y -= 0.03
         pdf.savefig()
         plt.close()
 
     print(f"[INFO ] PDF report created: {out_pdf_path}")
-
 
 # -------------------------
 # Main workflow
@@ -250,15 +256,19 @@ def analyze_and_report(
         scheduler_output_dir: str,
         algorithms: List[str],
         metrics_dir: str = DEFAULT_METRICS_DIR,
-        generate_pdf: bool = True
+        generate_pdf: bool = True,
+        run_id: str = None
 ) -> Dict[str, Any]:
     """
     High-level function:
     - loads outputs for each algorithm from `scheduler_output_dir`
       (expects files named <alg>_output.json or <alg>_out.json)
     - generates charts and a PDF summary in metrics_dir
+    - uses run_id to generate unique chart/report filenames per run
     """
     os.makedirs(metrics_dir, exist_ok=True)
+    if run_id is None:
+        run_id = get_run_id()
 
     summary_rows = []
     gantt_files = []
@@ -268,7 +278,7 @@ def analyze_and_report(
         # try common filename patterns
         cand1 = os.path.join(scheduler_output_dir, f"{alg.lower()}_output.json")
         cand2 = os.path.join(scheduler_output_dir, f"{alg.lower()}_out.json")
-        cand3 = os.path.join(scheduler_output_dir, f"{alg.lower()}_output.json")
+        cand3 = os.path.join(scheduler_output_dir, f"{alg.lower()}_integrated.json")
         path = cand1 if os.path.exists(cand1) else (cand2 if os.path.exists(cand2) else (cand3 if os.path.exists(cand3) else None))
         if path is None:
             print(f"[WARN] No JSON output found for {alg} in {scheduler_output_dir}; skipping.")
@@ -287,7 +297,7 @@ def analyze_and_report(
         summary_rows.append(row)
 
         # gantt
-        gantt_path = os.path.join(metrics_dir, f"{alg.lower()}_gantt.png")
+        gantt_path = os.path.join(metrics_dir, f"{alg.lower()}_gantt_{run_id}.png")
         plot_gantt(timeline, title=f"{alg} Gantt Chart", path=gantt_path)
         gantt_files.append((alg, gantt_path))
 
@@ -302,22 +312,22 @@ def analyze_and_report(
     summary_df = summary_df[cols]
 
     # save summary CSV
-    summary_csv = os.path.join(metrics_dir, "algorithms_comparison_summary.csv")
+    summary_csv = os.path.join(metrics_dir, f"algorithms_comparison_summary_{run_id}.csv")
     summary_df.to_csv(summary_csv, index=False)
     print(f"[INFO ] Summary CSV saved: {summary_csv}")
 
     # plots
-    bar_chart_path = os.path.join(metrics_dir, "comparison_bar_chart.png")
+    bar_chart_path = os.path.join(metrics_dir, f"comparison_bar_chart_{run_id}.png")
     plot_comparison_bar(summary_df.rename(columns={
         "Avg_Waiting": "Avg_Waiting",
         "Avg_Turnaround": "Avg_Turnaround"
     }), bar_chart_path)
 
-    throughput_path = os.path.join(metrics_dir, "throughput_cpuutil.png")
+    throughput_path = os.path.join(metrics_dir, f"throughput_cpuutil_{run_id}.png")
     plot_throughput_line(summary_df, throughput_path)
 
     # PDF
-    pdf_path = os.path.join(metrics_dir, "scheduling_report.pdf")
+    pdf_path = os.path.join(metrics_dir, f"scheduling_report_{run_id}.pdf")
     if generate_pdf:
         generate_pdf_report(summary_df, gantt_files, bar_chart_path, throughput_path, pdf_path, per_algorithm_metrics)
 
@@ -327,9 +337,9 @@ def analyze_and_report(
         "bar_chart": bar_chart_path,
         "throughput_chart": throughput_path,
         "pdf": pdf_path,
-        "per_algorithm_metrics": per_algorithm_metrics
+        "per_algorithm_metrics": per_algorithm_metrics,
+        "run_id": run_id
     }
-
 
 # -------------------------
 # CLI
@@ -344,18 +354,20 @@ if __name__ == "__main__":
     parser.add_argument("--metrics-dir", type=str, default=DEFAULT_METRICS_DIR,
                         help="Directory to save charts and report")
     parser.add_argument("--no-pdf", action="store_true", help="Skip PDF generation")
+    parser.add_argument("--run-id", type=str, default=None, help="Unique run ID for chart/report filenames")
     args = parser.parse_args()
 
     res = analyze_and_report(
         scheduler_output_dir=args.scheduler_outputs,
         algorithms=args.algorithms,
         metrics_dir=args.metrics_dir,
-        generate_pdf=not args.no_pdf
+        generate_pdf=not args.no_pdf,
+        run_id=args.run_id
     )
 
     if res:
         print("\n=== Analysis complete ===")
-        print(f"Summary saved to: {os.path.join(args.metrics_dir, 'algorithms_comparison_summary.csv')}")
+        print(f"Summary saved to: {os.path.join(args.metrics_dir, f'algorithms_comparison_summary_{res['run_id']}.csv')}")
         print(f"PDF report: {res.get('pdf')}")
         print("Generated Gantt charts:")
         for alg, p in res.get("gantt_files", []):
