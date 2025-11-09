@@ -1,0 +1,32 @@
+# Python virtual environments
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# Output and report folders (if you don't want to track generated files)
+outputs/
+integration_outputs/
+vsm-scheduler-core/metrics_reports/
+
+# Temporary files
+*.tmp
+*.bak
