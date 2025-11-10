@@ -130,10 +130,6 @@ def schedule():
 
     return jsonify(results)
 
-@app.route('/')
-def index():
-    return "Backend is running!"
-
 @app.route('/api/integration_outputs/<filename>')
 def get_integration_output(filename):
     return send_from_directory(INTEGRATION_DIR, filename)
@@ -151,5 +147,4 @@ def get_report(filename):
     return send_from_directory(REPORTS_DIR, filename)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5050))
-    app.run(host='0.0.0.0', port=port)
+    app.run(port=5000, debug=True)

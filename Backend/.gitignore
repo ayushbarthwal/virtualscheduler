@@ -22,10 +22,6 @@ Thumbs.db
 # Logs
 *.log
 
-# Output and report folders (if you don't want to track generated files)
-outputs/
-integration_outputs/
-vsm-scheduler-core/metrics_reports/
 
 # Temporary files
 *.tmp
